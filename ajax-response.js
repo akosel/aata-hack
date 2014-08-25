@@ -1,18 +1,20 @@
 var page = require('webpage').create();
 var fs = require('fs');
+var system = require('system');
 
+route = system.args[1];
 page.open('http://www.theride.org/SchedulesMapsTools/tabid/62/ctl/InteractiveMap/mid/2257/#RideTrak', function (status) {
     if (status === 'success') {
-          captureAjaxResponsesToConsole("1");
+          captureAjaxResponsesToConsole();
     }
 });
 
-function captureAjaxResponsesToConsole(r) {
+function captureAjaxResponsesToConsole() {
     // logs ajax response contents to console so sublime's onConsoleMessage can use the contents
     // credit to Ionuț G. Stan
     // http://stackoverflow.com/questions/629671/how-can-i-intercept-xmlhttprequests-from-a-greasemonkey-script
-    page.evaluate(function() {
-        jQuery('#dnn_ucInteractiveMapSideNav_ucRideTrakSideNav_ucStopSelection_ddlRoute').val("4");
+    page.evaluate(function(route) {
+        jQuery('#dnn_ucInteractiveMapSideNav_ucRideTrakSideNav_ucStopSelection_ddlRoute').val(route);
         jQuery('#dnn_ucInteractiveMapSideNav_ucRideTrakSideNav_ucStopSelection_ddlRoute').trigger('change');
         (function(open) {
             XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
@@ -31,7 +33,7 @@ function captureAjaxResponsesToConsole(r) {
             };
         })(XMLHttpRequest.prototype.open);
         return 1;
-    });
+    }, route);
 }
 
 page.onConsoleMessage = function (msg) {
@@ -44,8 +46,8 @@ page.onConsoleMessage = function (msg) {
         console.log('URL:' + res.url);
         console.log('Result: ' + result);
         console.log('HTML: ' + html);
-        fs.write('index.html', html, 'w');
-        fs.write('data.txt', result, 'a');
+        fs.write('route' + route + '.html', html, 'w');
+        fs.write('data.txt', result + '\n', 'a');
     } catch(e) {
         console.log('ERROR:', e);
     }
