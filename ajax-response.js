@@ -40,14 +40,16 @@ page.onConsoleMessage = function (msg) {
     try {
         var res=JSON.parse(msg);
         var html = unescape(JSON.parse(res.response.slice(1)).Html);
-        var result = JSON.stringify(JSON.parse(res.response.slice(1)).Result);
-        console.log(result);
+        var result = JSON.parse(res.response.slice(1)).Result;
+        for (var i = 0; i < result.length; i += 1) {
+            result[i]['timestamp'] = Date.now();
+        }
         console.log('--------------------');
         console.log('URL:' + res.url);
         console.log('Result: ' + result);
         console.log('HTML: ' + html);
-        fs.write('route' + route + '.html', html, 'w');
-        fs.write('data.txt', result + '\n', 'a');
+        fs.write('route' + route + '.html', html.replace('none', 'block'), 'w');
+        fs.write('data.txt', JSON.stringify(result) + '\n', 'a');
     } catch(e) {
         console.log('ERROR:', e);
     }
