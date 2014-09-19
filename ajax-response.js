@@ -10,12 +10,10 @@ page.open('http://www.theride.org/SchedulesMapsTools/tabid/62/ctl/InteractiveMap
 });
 
 function captureAjaxResponsesToConsole() {
-    // logs ajax response contents to console so sublime's onConsoleMessage can use the contents
-    // credit to Ionuț G. Stan
-    // http://stackoverflow.com/questions/629671/how-can-i-intercept-xmlhttprequests-from-a-greasemonkey-script
     page.evaluate(function(route) {
         jQuery('#dnn_ucInteractiveMapSideNav_ucRideTrakSideNav_ucStopSelection_ddlRoute').val(route);
         jQuery('#dnn_ucInteractiveMapSideNav_ucRideTrakSideNav_ucStopSelection_ddlRoute').trigger('change');
+
         (function(open) {
             XMLHttpRequest.prototype.open = function(method, url, async, user, pass) {
                 this.addEventListener("readystatechange", function() {
