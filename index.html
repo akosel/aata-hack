@@ -4,6 +4,28 @@
         <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
         <link rel="stylesheet" href="stylesheet.css" />
         <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+        <script src="https://cdn.firebase.com/js/client/1.0.21/firebase.js"></script>
+        <script>
+            var myPosition;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) { 
+                    console.log(position); 
+                    myPosition = position; 
+                    var circle = L.circle([myPosition.coords.latitude, myPosition.coords.longitude], 500, {
+                        color: 'red',
+                        fillColor: '#f03',
+                        fillOpacity: 0.5
+                    }).addTo(map);
+                    // circle.bindPopup(resp.times[0].localized_display_name + ': ' + Math.round(resp.times[0].estimate / 60) + ' minutes away');
+                    return position; 
+                }, 
+                function() { 
+                    console.log('failed to get geo data'); 
+                });
+            } else {
+                document.body.innerHTML += '<div>No geolocation data available</div>';
+            }
+        </script>
     </head>
     <body>
 
@@ -30,7 +52,6 @@
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
                 var resp = JSON.parse(xhr.responseText);
-                circle.bindPopup(resp.times[0].localized_display_name + ': ' + Math.round(resp.times[0].estimate / 60) + ' minutes away');
             }
         };
         xhr.send();
@@ -40,11 +61,6 @@
 
         L.tileLayer('http://{s}.tiles.mapbox.com/v3/akosel.i5522e6e/{z}/{x}/{y}.png', {
             maxZoom: 18
-        }).addTo(map);
-        var circle = L.circle([params.latitude, params.longitude], 500, {
-            color: 'red',
-            fillColor: '#f03',
-            fillOpacity: 0.5
         }).addTo(map);
     </script>
 </html>
