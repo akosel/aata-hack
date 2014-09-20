@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.9.4",
+    "jade": "^1.7.0",
     "phantomjs": "^1.9.9"
   }
 }

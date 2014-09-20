@@ -59,7 +59,7 @@ function harvest(route) {
       console.log(JSON.stringify(result));
 
       fs.write('./data.txt',  JSON.stringify(result)+ '\n', 'a');
-      fs.write('./data/route' + route + '.json', JSON.stringify(result), 'w');
+      fs.write('./public/data/route' + route + '.json', JSON.stringify(result), 'w');
     } catch(e) {
       // console.log(e);
       var err = e;
