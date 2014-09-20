@@ -1,3 +1,11 @@
 #map {
-    height: 400px;
+  position: fixed;
+  top: 5px;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+.head {
+   color: green; 
 }

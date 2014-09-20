@@ -5,62 +5,10 @@
         <link rel="stylesheet" href="stylesheet.css" />
         <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
         <script src="https://cdn.firebase.com/js/client/1.0.21/firebase.js"></script>
-        <script>
-            var myPosition;
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) { 
-                    console.log(position); 
-                    myPosition = position; 
-                    var circle = L.circle([myPosition.coords.latitude, myPosition.coords.longitude], 500, {
-                        color: 'red',
-                        fillColor: '#f03',
-                        fillOpacity: 0.5
-                    }).addTo(map);
-                    // circle.bindPopup(resp.times[0].localized_display_name + ': ' + Math.round(resp.times[0].estimate / 60) + ' minutes away');
-                    return position; 
-                }, 
-                function() { 
-                    console.log('failed to get geo data'); 
-                });
-            } else {
-                document.body.innerHTML += '<div>No geolocation data available</div>';
-            }
-        </script>
     </head>
     <body>
-
+        <header id='notifications'></header>
         <div id='map'></div>
-        <div>	
-            <a href='route1.html'>Route 1</a>    
-            <a href='route2.html'>Route 2</a>    
-            <a href='route3.html'>Route 3</a>    
-        </div>
     </body>
-    <script>
-        var token = '7vN38Zz-DZqHdOm7VhhYPl6hcFYfLB_VSGbbkLeM';
-        var url = 'https://api.uber.com/v1/estimates/time';
-        var params = {
-            'server_token': token,
-            'latitude': 42.288,
-            'longitude': -83.7311
-        };
-
-        var xhr = new XMLHttpRequest();
-        var paramUrl = url + '?start_latitude=' + params.latitude + '&start_longitude=' + params.longitude;
-        xhr.open('GET', paramUrl);
-        xhr.setRequestHeader('Authorization', "Token " + token)
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                var resp = JSON.parse(xhr.responseText);
-            }
-        };
-        xhr.send();
-
-
-        var map = L.map('map').setView([42.278, -83.7311], 12);
-
-        L.tileLayer('http://{s}.tiles.mapbox.com/v3/akosel.i5522e6e/{z}/{x}/{y}.png', {
-            maxZoom: 18
-        }).addTo(map);
-    </script>
+        <script src="/transportation.js"></script>
 </html>
