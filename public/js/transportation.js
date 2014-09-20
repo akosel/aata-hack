@@ -1,6 +1,10 @@
 var Transportation = Transportation || {};
 
 Transportation.sendNotification = function(msg) {
+  document.getElementById('notifications').innerHTML = msg;
+}
+
+Transportation.addNotification = function(msg) {
   document.getElementById('notifications').innerHTML += msg + '\n';
 }
 
@@ -14,7 +18,7 @@ Transportation.User = (function() {
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) { 
-      Transportation.clearNotifications();
+      Transportation.sendNotification('Click anywhere outside of this box to view the map!');
 
       Transportation.Map.initialize(position.coords.latitude, position.coords.longitude);
       Transportation.Map.addUserMarker(position.coords.latitude, position.coords.longitude);

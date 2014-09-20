@@ -5,7 +5,14 @@ html
     script(src='http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js')
     script(src='https://cdn.firebase.com/js/client/1.0.21/firebase.js')
   body
-    header#notifications
+    header
+      article
+        #notifications
+        h3 What is this?
+        p This map shows where all of the buses in the AATA are currently located. This is a small side project of mine to try to come up with a better way of figuring out when I need to catch the bus.
+        p A number of improvements need to be made, so as it stands it's mostly a playground where I can mess around with mapping.
     #map
+      .rocket
   script(src='/js/transportation.js')
+  script(src='/js/overlay.js')
 
