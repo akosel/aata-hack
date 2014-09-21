@@ -75,14 +75,13 @@ Transportation.Bus = (function() {
       bus.currentRouteIdx += 1;
       data.onreadystatechange = function() {
         if (data.readyState === 4) {
-          console.log('response', data.responseText);
           try {
             var json = JSON.parse(data.responseText);
             for (var i = 0; i < json.length; i += 1) {
-              Transportation.Map.addRouteMarker(json[i].Lat, json[i].Lon, json[i].RouteAbbreviation);
+              Transportation.Map.addRouteMarker(json[i].Lat, json[i].Lon, json[i].RouteAbbreviation, json[i].html);
             }
-            console.log(json);
           } catch(e) {
+            var err = e;
             console.log(e);
           }
           bus.updatePositions();
@@ -101,11 +100,29 @@ Transportation.Map = (function() {
   var map = {};
 
   map.initialize = function(latitude, longitude) {
-    map.container = L.map('map').setView([latitude, longitude], 12);
+    map.container = L.map('map').setView([latitude, longitude], 13);
 
     L.tileLayer('http://{s}.tiles.mapbox.com/v3/akosel.i5522e6e/{z}/{x}/{y}.png', {
       maxZoom: 18
       }).addTo(map.container);
+  };
+
+  map.distance = function(lat1, lat2, lon1, lon2) {
+    console.log('distance');
+    var R = 3959; // mi
+    var r1 = Math.PI * lat1 / 180;
+    var r2 = Math.PI * lat2 / 180;
+    var deltaLat = Math.PI * (lat2-lat1) / 180;
+    var deltaLon = Math.PI * (lon2-lon1) / 180;
+
+    var a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +
+          Math.cos(r1) * Math.cos(r2) *
+          Math.sin(deltaLon/2) * Math.sin(deltaLon/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    var d = R * c;
+
+    return d;
   };
 
   map.addUserMarker = function(latitude, longitude) {
@@ -124,12 +141,13 @@ Transportation.Map = (function() {
 
   }
 
-  map.addRouteMarker = function(latitude, longitude, route) {
+  map.addRouteMarker = function(latitude, longitude, route, msg) {
     if (!map.container) {
       Transportation.sendNotification('Sorry, there is no map yet. Please load a map and try again');
       return;
     }
 
+    var distance = Transportation.Map.distance(Transportation.User.position.coords.latitude, latitude, Transportation.User.position.coords.longitude, longitude);
 // XXX need a way of cleaning up routes, but it'sa little tricky
 //    var heads = document.getElementsByClassName('head ' + route);
 //    for (var i = 0; i < heads.length; i += 1) {
@@ -140,7 +158,13 @@ Transportation.Map = (function() {
       fillColor: '#f03',
       fillOpacity: 0.8
     }).addTo(map.container);
-    circle.bindPopup('Route ' + route);
+    
+    var msg = msg || 'Route ' + 1;
+    msg += '<p>' + distance.toPrecision(2) + ' miles away</p>';
+    circle.bindPopup(msg, { 'minWidth': '300'});
+    // if (distance < 3) {
+    //   circle.openPopup();
+    // }
 
   };
 
