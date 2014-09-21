@@ -1,11 +1,11 @@
 var Transportation = Transportation || {};
 
 Transportation.sendNotification = function(msg) {
-  document.getElementById('notifications').innerHTML = msg;
+  document.getElementById('notifications').innerHTML = '<strong>' + msg + '</strong><br>';
 }
 
 Transportation.addNotification = function(msg) {
-  document.getElementById('notifications').innerHTML += msg + '\n';
+  document.getElementById('notifications').innerHTML += '<br><strong>' + msg + '</strong><br>';
 }
 
 Transportation.clearNotifications = function() {
@@ -29,10 +29,25 @@ Transportation.User = (function() {
 
     }, 
     function() { 
-      Transportation.sendMessage('While your browser does allow for geolocation, there is no data available');
+      Transportation.sendNotification('Click anywhere outside of this box to view the map!');
+      Transportation.addNotification('While your browser does allow for geolocation, we couldn\'t access it, so we centered it on a default.');
+      user.position = { timestamp: Date.now(), coords: { latitude: 42.2775, longitude: -83.7398 } }; 
+
+      Transportation.Map.initialize(user.position.coords.latitude, user.position.coords.longitude);
+      Transportation.Map.addUserMarker(user.position.coords.latitude, user.position.coords.longitude);
+      Transportation.Bus.updatePositions();
+      Transportation.Bus.listen;
     });
   } else {
-    Transportation.sendMessage('No geolocation data available');
+    Transportation.sendNotification('Click anywhere outside of this box to view the map!');
+    Transportation.addNotification('No geolocation data available');
+      
+    user.position = { timestamp: Date.now(), coords: { latitude: 42.2775, longitude: -83.7398 } }; 
+
+    Transportation.Map.initialize(user.position.coords.latitude, user.position.coords.longitude);
+    Transportation.Map.addUserMarker(user.position.coords.latitude, user.position.coords.longitude);
+    Transportation.Bus.updatePositions();
+    Transportation.Bus.listen;
   }
 
   return user; 
