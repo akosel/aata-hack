@@ -19,13 +19,21 @@ Transportation.User = (function() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) { 
       Transportation.sendNotification('Click anywhere outside of this box to view the map!');
+      
+      var distance = Transportation.Map.distance(position.coords.latitude, 42.2775, position.coords.longitude, -83.7398);
+      console.log(distance);
+      if (distance > 20) {
+        Transportation.addNotification('Woah nelly! You are far away from Ann Arbor. This page may not be too useful for you, but we are centering the map on Ann Arbor anyways.');
+        user.position = { timestamp: Date.now(), coords: { latitude: 42.2775, longitude: -83.7398 } }; 
+      } else {
+        user.position = position;
+      }
 
-      Transportation.Map.initialize(position.coords.latitude, position.coords.longitude);
-      Transportation.Map.addUserMarker(position.coords.latitude, position.coords.longitude);
+      Transportation.Map.initialize(user.position.coords.latitude, user.position.coords.longitude);
+      Transportation.Map.addUserMarker(user.position.coords.latitude, user.position.coords.longitude);
       Transportation.Bus.updatePositions();
       Transportation.Bus.listen;
 
-      user.position = position;
 
     }, 
     function() { 
@@ -100,7 +108,7 @@ Transportation.Map = (function() {
   var map = {};
 
   map.initialize = function(latitude, longitude) {
-    map.container = L.map('map').setView([latitude, longitude], 13);
+    map.container = L.map('map').setView([latitude, longitude], 14);
 
     L.tileLayer('http://{s}.tiles.mapbox.com/v3/akosel.i5522e6e/{z}/{x}/{y}.png', {
       maxZoom: 18
@@ -108,7 +116,6 @@ Transportation.Map = (function() {
   };
 
   map.distance = function(lat1, lat2, lon1, lon2) {
-    console.log('distance');
     var R = 3959; // mi
     var r1 = Math.PI * lat1 / 180;
     var r2 = Math.PI * lat2 / 180;
