@@ -4,22 +4,26 @@ var Transportation = Transportation || {};
 Transportation.sendNotification = function(msg) {
   document.querySelector('header').style.display = 'block';
   document.getElementById('notifications').innerHTML = '<strong>' + msg + '</strong><br>';
-}
+};
 
 Transportation.addNotification = function(msg) {
   document.getElementById('notifications').innerHTML += '<br><strong>' + msg + '</strong><br>';
-}
+};
 
 Transportation.clearNotifications = function() {
-  document.querySelctor('header').innerHTML = "";
-}
+  document.querySelector('#notifications').innerHTML = "";
+};
+
+Transportation.clearHelp = function() {
+  document.querySelector('#help').innerHTML = "";
+};
 
 Transportation.build = function(latitude, longitude) {
   Transportation.Map.initialize(latitude, longitude);
   Transportation.Map.addUserMarker(latitude, longitude);
   Transportation.BusSystem.updatePositions();
   Transportation.BusSystem.listen;
-}
+};
 
 Transportation.User = (function() {
   var user = {};
@@ -61,42 +65,46 @@ Transportation.User = (function() {
 })();
 
 Transportation.BusSystem = (function() {
-  var bus = {};
+  var busSystem = {};
 
   // basic properties for the bus system
-  bus.currentRouteIdx = 0;
-  bus.routeFilenames = [];
-  bus.routes = ["1", "1U", "2", "2C", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12A", "12B", "13", "14", "15", "16", "17", "18", "20", "22", "33", "36", "46", "609", "710"];
-  bus.routeFilenames = _(bus.routes).map(function(r) { return '/data/route' + r + '.json'; });
+  busSystem.currentRouteIdx = 0;
+  busSystem.routeFilenames = [];
+  busSystem.routes = ["1", "1U", "2", "2C", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12A", "12B", "13", "14", "15", "16", "17", "18", "20", "22", "33", "36", "46", "609", "710"];
+  busSystem.routeFilenames = _(busSystem.routes).map(function(r) { return '/data/route' + r + '.json'; });
 
-  bus.updatePositions = function() {
-    if (bus.currentRouteIdx === bus.routeFilenames.length) {
-      bus.currentRouteIdx = 0;
+  busSystem.buses = {};
+
+  busSystem.updatePositions = function() {
+    if (busSystem.currentRouteIdx === busSystem.routeFilenames.length) {
+      busSystem.currentRouteIdx = 0;
       return;
     } else {
       var data = new XMLHttpRequest();
-      data.open('GET', bus.routeFilenames[bus.currentRouteIdx]);
-      bus.currentRouteIdx += 1;
+      data.open('GET', busSystem.routeFilenames[busSystem.currentRouteIdx]);
+      busSystem.currentRouteIdx += 1;
       data.onreadystatechange = function() {
         if (data.readyState === 4) {
           try {
             var json = JSON.parse(data.responseText);
+
             for (var i = 0; i < json.length; i += 1) {
+              busSystem.buses[json[i].RouteAbbreviation + '-' + json[i].VehicleNumber] = json[i];
               Transportation.Map.addRouteMarker(json[i], json[i].html);
             }
           } catch(e) {
             var err = e;
           }
-          bus.updatePositions();
+          busSystem.updatePositions();
         }
       };
       data.send();
     }
   };
 
-  bus.listen = setInterval(bus.updatePositions, 3000);
+  busSystem.listen = setInterval(busSystem.updatePositions, 3000);
 
-  return bus;
+  return busSystem;
 }());
 
 Transportation.Map = (function() {
@@ -132,15 +140,15 @@ Transportation.Map = (function() {
       return;
     }
 
-    var circle = L.circle([latitude, longitude], 200, {
+    map.userMarker = L.circle([latitude, longitude], 200, {
       color: 'red',
       className: 'user',
       fillColor: 'red',
       fillOpacity: 1
     }).addTo(map.container);
-    circle.bindPopup('This is you!');
+    Transportation.Map.userMarker.bindPopup('This is you!');
 
-  }
+  };
   
   map.getMarkerColor = function(direction) {
     var upD = direction.toUpperCase();
@@ -172,6 +180,13 @@ Transportation.Map = (function() {
     }
 
     var distance = Transportation.Map.getDistance(Transportation.User.position.coords.latitude, busStats.Lat, Transportation.User.position.coords.longitude, busStats.Lon);
+
+    Transportation.User.currentMinDistance = distance < Transportation.User.currentMinDistance || !Transportation.User.currentMinDistance ? distance : Transportation.User.currentMaxDistance;
+
+    if (Transportation.User.currentMinDistance < 0) {
+      var uber = new Transportation.Uber();
+      uber.getTime(uber.params);
+    }
     
     var head = document.querySelector('.head-' + busStats.VehicleNumber);
     if (head) { 
@@ -184,17 +199,17 @@ Transportation.Map = (function() {
     //   color: 'black',
     //   fillOpacity: 0.8
     // }).addTo(map.container);
+    // circle.bindPopup(msg, { 'minWidth': '300'});
     var icon = L.icon({
       iconUrl: map.getMarkerIcon(busStats.direction),
       iconSize: [50, 50],
       className: 'head-' + busStats.VehicleNumber
     });
 
-    L.marker([busStats.Lat, busStats.Lon], { icon: icon }).addTo(map.container).bindPopup(msg, { 'minWidth': '300'});
-    
     var msg = msg || 'Route ' + 1;
     msg += '<p>' + distance.toPrecision(2) + ' miles away</p>';
-    circle.bindPopup(msg, { 'minWidth': '300'});
+    L.marker([busStats.Lat, busStats.Lon], { icon: icon }).addTo(map.container).bindPopup(msg, { 'minWidth': '300'});
+    
 
 
   };
@@ -203,20 +218,74 @@ Transportation.Map = (function() {
 
 }());
 
-// var token = '7vN38Zz-DZqHdOm7VhhYPl6hcFYfLB_VSGbbkLeM';
-// var url = 'https://api.uber.com/v1/estimates/time';
-// var params = {
-//     'server_token': token,
-//     'latitude': 42.288,
-//     'longitude': -83.7311
-// };
-// 
-// var xhr = new XMLHttpRequest();
-// var paramUrl = url + '?start_latitude=' + params.latitude + '&start_longitude=' + params.longitude;
-// xhr.open('GET', paramUrl);
-// xhr.setRequestHeader('Authorization', "Token " + token)
-// xhr.onreadystatechange = function() {
-//     if (xhr.readyState === 4) {
-//         var resp = JSON.parse(xhr.responseText);
-//     }
-// };
+Transportation.Uber = function(latitude, longitude) {
+  var uber = this;
+
+  uber.token = '7vN38Zz-DZqHdOm7VhhYPl6hcFYfLB_VSGbbkLeM';
+
+  uber.queryUrl = {
+    time: 'https://api.uber.com/v1/estimates/time',
+    price: 'https://api.uber.com/v1/estimates/price',
+    products: 'https://api.uber.com/v1/products'
+  };
+  uber.params = {
+     'server_token': uber.token,
+     'latitude': latitude || Transportation.User.position.coords.latitude,
+     'longitude': longitude || Transportation.User.position.coords.longitude,
+     'endLatitude': 42.2775,  
+     'endLongitude': -83.7398
+  };
+
+  uber.updateInfo = function(params) {
+    uber.getTime(params);
+    uber.getProduct(params);
+    uber.getPrice(params);
+  };
+
+  uber.getTime = function(params) {
+    var url = uber.queryUrl.time + '?start_latitude=' + params.latitude + '&start_longitude=' + params.longitude;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.setRequestHeader('Authorization', "Token " + uber.token)
+    xhr.onreadystatechange = function() {
+       if (xhr.readyState === 4) {
+           var resp = JSON.parse(xhr.responseText);
+           uber.time = resp.times;
+           Transportation.Map.userMarker.bindPopup(JSON.stringify(resp));
+           Transportation.sendNotification('An Uber driver can be to you in about ' + Math.round(resp.times[0].estimate / 60) + ' minutes');
+       }
+    };
+    xhr.send();
+  };
+
+  uber.getProduct = function(params) {
+    var url = uber.queryUrl.products + '?latitude=' + params.latitude + '&longitude=' + params.longitude;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.setRequestHeader('Authorization', "Token " + uber.token)
+    xhr.onreadystatechange = function() {
+       if (xhr.readyState === 4) {
+           var resp = JSON.parse(xhr.responseText);
+           uber.products = resp.products;
+           Transportation.addNotification('Here are some currently available products:\n ' + JSON.stringify(resp));
+       }
+    };
+    xhr.send();
+  };
+
+  uber.getPrice = function(params) {
+    var url = uber.queryUrl.price + '?start_latitude=' + params.latitude + '&start_longitude=' + params.longitude + '&end_latitude=' + params.endLatitude + '&end_longitude=' + params.endLongitude;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.setRequestHeader('Authorization', "Token " + uber.token)
+    xhr.onreadystatechange = function() {
+       if (xhr.readyState === 4) {
+           var resp = JSON.parse(xhr.responseText);
+           uber.prices = resp.prices;
+           Transportation.addNotification('Getting to downtown Ann Arbor would cost around ' + JSON.stringify(resp.prices[0].estimate));
+       }
+    };
+    xhr.send();
+  };
+
+};

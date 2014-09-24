@@ -70,7 +70,8 @@ function harvest(route) {
       // console.log('HTML: ' + html);
       //        fs.write('route' + route + '.html', html.replace('none', 'block'), 'w');
       //
-      fs.write('./data.txt',  JSON.stringify(result)+ '\n', 'a');
+//      fs.write('./data.txt',  JSON.stringify(result)+ '\n', 'a');
+      console.log(JSON.stringify(result));
       fs.write('./public/data/route' + route + '.json', JSON.stringify(result), 'w');
     } catch(e) {
       console.log(e);
