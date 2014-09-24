@@ -1,6 +1,8 @@
+
 var Transportation = Transportation || {};
 
 Transportation.sendNotification = function(msg) {
+  document.querySelector('header').style.display = 'block';
   document.getElementById('notifications').innerHTML = '<strong>' + msg + '</strong><br>';
 }
 
@@ -9,7 +11,14 @@ Transportation.addNotification = function(msg) {
 }
 
 Transportation.clearNotifications = function() {
-  document.getElementById('notifications').innerHTML = "";
+  document.querySelctor('header').innerHTML = "";
+}
+
+Transportation.build = function(latitude, longitude) {
+  Transportation.Map.initialize(latitude, longitude);
+  Transportation.Map.addUserMarker(latitude, longitude);
+  Transportation.BusSystem.updatePositions();
+  Transportation.BusSystem.listen;
 }
 
 Transportation.User = (function() {
@@ -20,8 +29,7 @@ Transportation.User = (function() {
     navigator.geolocation.getCurrentPosition(function(position) { 
       Transportation.sendNotification('Click anywhere outside of this box to view the map!');
       
-      var distance = Transportation.Map.distance(position.coords.latitude, 42.2775, position.coords.longitude, -83.7398);
-      console.log(distance);
+      var distance = Transportation.Map.getDistance(position.coords.latitude, 42.2775, position.coords.longitude, -83.7398);
       if (distance > 20) {
         Transportation.addNotification('Woah nelly! You are far away from Ann Arbor. This page may not be too useful for you, but we are centering the map on Ann Arbor anyways.');
         user.position = { timestamp: Date.now(), coords: { latitude: 42.2775, longitude: -83.7398 } }; 
@@ -29,10 +37,7 @@ Transportation.User = (function() {
         user.position = position;
       }
 
-      Transportation.Map.initialize(user.position.coords.latitude, user.position.coords.longitude);
-      Transportation.Map.addUserMarker(user.position.coords.latitude, user.position.coords.longitude);
-      Transportation.Bus.updatePositions();
-      Transportation.Bus.listen;
+      Transportation.build(user.position.coords.latitude, user.position.coords.longitude);
 
 
     }, 
@@ -41,10 +46,7 @@ Transportation.User = (function() {
       Transportation.addNotification('While your browser does allow for geolocation, we couldn\'t access it, so we centered it on a default.');
       user.position = { timestamp: Date.now(), coords: { latitude: 42.2775, longitude: -83.7398 } }; 
 
-      Transportation.Map.initialize(user.position.coords.latitude, user.position.coords.longitude);
-      Transportation.Map.addUserMarker(user.position.coords.latitude, user.position.coords.longitude);
-      Transportation.Bus.updatePositions();
-      Transportation.Bus.listen;
+      Transportation.build(user.position.coords.latitude, user.position.coords.longitude);
     });
   } else {
     Transportation.sendNotification('Click anywhere outside of this box to view the map!');
@@ -52,26 +54,20 @@ Transportation.User = (function() {
       
     user.position = { timestamp: Date.now(), coords: { latitude: 42.2775, longitude: -83.7398 } }; 
 
-    Transportation.Map.initialize(user.position.coords.latitude, user.position.coords.longitude);
-    Transportation.Map.addUserMarker(user.position.coords.latitude, user.position.coords.longitude);
-    Transportation.Bus.updatePositions();
-    Transportation.Bus.listen;
+    Transportation.build(user.position.coords.latitude, user.position.coords.longitude);
   }
 
   return user; 
-}());
+})();
 
-Transportation.Bus = (function() {
+Transportation.BusSystem = (function() {
   var bus = {};
 
+  // basic properties for the bus system
   bus.currentRouteIdx = 0;
-
-  bus.routes = ["1", "1U", "2", "2C", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12A", "12B", "13", "14", "15", "16", "17", "18", "20", "22", "33", "36", "46", "609", "710", "711"];
   bus.routeFilenames = [];
-  for (var i = 0; i < bus.routes.length; i += 1) {
-    bus.routeFilenames.push('/data/route' + bus.routes[i] + '.json');
-  }
-  // setInterval(done, 10000);
+  bus.routes = ["1", "1U", "2", "2C", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12A", "12B", "13", "14", "15", "16", "17", "18", "20", "22", "33", "36", "46", "609", "710"];
+  bus.routeFilenames = _(bus.routes).map(function(r) { return '/data/route' + r + '.json'; });
 
   bus.updatePositions = function() {
     if (bus.currentRouteIdx === bus.routeFilenames.length) {
@@ -86,11 +82,10 @@ Transportation.Bus = (function() {
           try {
             var json = JSON.parse(data.responseText);
             for (var i = 0; i < json.length; i += 1) {
-              Transportation.Map.addRouteMarker(json[i].Lat, json[i].Lon, json[i].RouteAbbreviation, json[i].html);
+              Transportation.Map.addRouteMarker(json[i], json[i].html);
             }
           } catch(e) {
             var err = e;
-            console.log(e);
           }
           bus.updatePositions();
         }
@@ -99,7 +94,7 @@ Transportation.Bus = (function() {
     }
   };
 
-  bus.listen = setInterval(bus.updatePositions, 10000);
+  bus.listen = setInterval(bus.updatePositions, 3000);
 
   return bus;
 }());
@@ -115,7 +110,7 @@ Transportation.Map = (function() {
       }).addTo(map.container);
   };
 
-  map.distance = function(lat1, lat2, lon1, lon2) {
+  map.getDistance = function(lat1, lat2, lon1, lon2) {
     var R = 3959; // mi
     var r1 = Math.PI * lat1 / 180;
     var r2 = Math.PI * lat2 / 180;
@@ -134,7 +129,6 @@ Transportation.Map = (function() {
 
   map.addUserMarker = function(latitude, longitude) {
     if (!map.container) {
-      Transportation.sendNotification('Sorry, there is no map yet. Please load a map and try again');
       return;
     }
 
@@ -147,31 +141,42 @@ Transportation.Map = (function() {
     circle.bindPopup('This is you!');
 
   }
+  
+  map.getMarkerColor = function(direction) {
+    var upD = direction.toUpperCase();
+    if (upD === "TO DOWNTOWN" || upD === "TO ANN ARBOR") {
+      return '#FF701E';
+    } else if (upD === "LOOP") {
+      return '#20B37E';
+    } else {
+      return '#2192CC';
+    }
 
-  map.addRouteMarker = function(latitude, longitude, route, msg) {
+  };
+
+  map.addRouteMarker = function(busStats, msg) {
     if (!map.container) {
-      Transportation.sendNotification('Sorry, there is no map yet. Please load a map and try again');
       return;
     }
 
-    var distance = Transportation.Map.distance(Transportation.User.position.coords.latitude, latitude, Transportation.User.position.coords.longitude, longitude);
-// XXX need a way of cleaning up routes, but it'sa little tricky
-//    var heads = document.getElementsByClassName('head ' + route);
-//    for (var i = 0; i < heads.length; i += 1) {
-//      heads[i].parentNode.removeChild(heads[i]);
-//    }
-    var circle = L.circle([latitude, longitude], 50, {
-      className: 'head ' + route,
-      fillColor: '#f03',
+    var distance = Transportation.Map.getDistance(Transportation.User.position.coords.latitude, busStats.Lat, Transportation.User.position.coords.longitude, busStats.Lon);
+    
+    var head = document.querySelector('.head-' + busStats.VehicleNumber);
+    if (head) { 
+      head.parentNode.removeChild(head);
+    }
+
+    var circle = L.circle([busStats.Lat, busStats.Lon], 100, {
+      className: 'head-' + busStats.VehicleNumber,
+      fillColor: map.getMarkerColor(busStats.direction),
+      color: 'black',
       fillOpacity: 0.8
     }).addTo(map.container);
     
     var msg = msg || 'Route ' + 1;
     msg += '<p>' + distance.toPrecision(2) + ' miles away</p>';
     circle.bindPopup(msg, { 'minWidth': '300'});
-    // if (distance < 3) {
-    //   circle.openPopup();
-    // }
+
 
   };
 

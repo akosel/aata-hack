@@ -27,6 +27,6 @@ var server = app.listen(process.env.PORT || 8000, function() {
     } else {
       clearInterval(id);
     } 
-  }, 2000);
+  }, 1000);
   console.log('listening');
 });

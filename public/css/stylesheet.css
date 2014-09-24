@@ -29,10 +29,6 @@ article {
   border-radius: 2em;
 }
 
-.head {
-   color: green; 
-}
-
 .rocket{
   position:absolute;
   top:30%;

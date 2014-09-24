@@ -44,24 +44,36 @@ function harvest(route) {
     try {
       var res=JSON.parse(msg);
       var html = unescape(JSON.parse(res.response.slice(1)).Html);
+
+      // begin attempts to gather all html data
+      // need to tease out multiple bus data packed into one html blob
+      // probably need to use Vehicle Number
+      var el = document.createElement('div');
+      el.innerHTML = html;
+      // use all to determine number of entries
+      var directions = el.querySelectorAll('table');
+
       var result = JSON.parse(res.response.slice(1)).Result;
       var route = res.route;
-      console.log(route);
       for (var i = 0; i < result.length; i += 1) {
         result[i]['timestamp'] = Date.now();
-        result[i].html = html.replace('none', 'block');
+        var htmlBusNumber = directions[i].querySelector('td.bus_number').innerHTML
+        
+        if (htmlBusNumber == result[i].VehicleNumber) {
+          result[i].direction = directions[i].querySelector('td.direction').innerHTML
+          result[i].html = directions[i].outerHTML;
+        }
+
       }
       // console.log('--------------------');
       // console.log('URL:' + res.url);
       // console.log('HTML: ' + html);
       //        fs.write('route' + route + '.html', html.replace('none', 'block'), 'w');
       //
-      console.log(JSON.stringify(result));
-
       fs.write('./data.txt',  JSON.stringify(result)+ '\n', 'a');
       fs.write('./public/data/route' + route + '.json', JSON.stringify(result), 'w');
     } catch(e) {
-      // console.log(e);
+      console.log(e);
       var err = e;
     }
   };

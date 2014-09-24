@@ -9,8 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "backbone": "^1.1.2",
     "express": "^4.9.4",
     "jade": "^1.7.0",
+    "leaflet-routing-machine": "^1.0.0",
     "phantomjs": "^1.9.9"
   }
 }
