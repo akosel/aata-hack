@@ -72,6 +72,7 @@ Transportation.BusSystem = (function() {
   busSystem.routeFilenames = [];
   busSystem.routes = ["1", "1U", "2", "2C", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12A", "12B", "13", "14", "15", "16", "17", "18", "20", "22", "33", "36", "46", "609", "710"];
   busSystem.routeFilenames = _(busSystem.routes).map(function(r) { return '/data/route' + r + '.json'; });
+  busSystem.routeWaypoints = {};
 
   busSystem.buses = {};
 
@@ -102,7 +103,7 @@ Transportation.BusSystem = (function() {
     }
   };
 
-  busSystem.listen = setInterval(busSystem.updatePositions, 3000);
+  busSystem.listen = setInterval(busSystem.updatePositions, 5000);
 
   return busSystem;
 }());
