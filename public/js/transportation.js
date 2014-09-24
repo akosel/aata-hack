@@ -154,6 +154,18 @@ Transportation.Map = (function() {
 
   };
 
+  map.getMarkerIcon = function(direction) {
+    var upD = direction.toUpperCase();
+    if (upD === "TO DOWNTOWN" || upD === "TO ANN ARBOR") {
+      return '/assets/img/in-bus-icon.png';
+    } else if (upD === "LOOP") {
+      return '/assets/img/loop-bus-icon.png';
+    } else {
+      return '/assets/img/from-bus-icon.png';
+    }
+
+  };
+
   map.addRouteMarker = function(busStats, msg) {
     if (!map.container) {
       return;
@@ -166,12 +178,19 @@ Transportation.Map = (function() {
       head.parentNode.removeChild(head);
     }
 
-    var circle = L.circle([busStats.Lat, busStats.Lon], 100, {
-      className: 'head-' + busStats.VehicleNumber,
-      fillColor: map.getMarkerColor(busStats.direction),
-      color: 'black',
-      fillOpacity: 0.8
-    }).addTo(map.container);
+    // var circle = L.circle([busStats.Lat, busStats.Lon], 100, {
+    //   className: 'head-' + busStats.VehicleNumber,
+    //   fillColor: map.getMarkerColor(busStats.direction),
+    //   color: 'black',
+    //   fillOpacity: 0.8
+    // }).addTo(map.container);
+    var icon = L.icon({
+      iconUrl: map.getMarkerIcon(busStats.direction),
+      iconSize: [50, 50],
+      className: 'head-' + busStats.VehicleNumber
+    });
+
+    L.marker([busStats.Lat, busStats.Lon], { icon: icon }).addTo(map.container).bindPopup(msg, { 'minWidth': '300'});
     
     var msg = msg || 'Route ' + 1;
     msg += '<p>' + distance.toPrecision(2) + ' miles away</p>';
