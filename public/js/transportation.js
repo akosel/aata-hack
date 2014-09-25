@@ -103,7 +103,7 @@ Transportation.BusSystem = (function() {
     }
   };
 
-  busSystem.listen = setInterval(busSystem.updatePositions, 5000);
+  busSystem.listen = setInterval(busSystem.updatePositions, 10000);
 
   return busSystem;
 }());
