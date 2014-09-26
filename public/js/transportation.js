@@ -70,9 +70,17 @@ Transportation.BusSystem = (function() {
   // basic properties for the bus system
   busSystem.currentRouteIdx = 0;
   busSystem.routeFilenames = [];
-  busSystem.routes = ["1", "1U", "2", "2C", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12A", "12B", "13", "14", "15", "16", "17", "18", "20", "22", "33", "36", "46", "609", "710"];
+  busSystem.routes = ["1", "1U", "2", "2C", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12A", "12B"]; //, "13", "14", "15", "16", "17", "18", "20", "22", "33", "36", "46", "609", "710"];
   busSystem.routeFilenames = _(busSystem.routes).map(function(r) { return '/data/route' + r + '.json'; });
-  busSystem.routeWaypoints = {};
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', '/data/routeSystem.json');
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4) {
+      busSystem.routeWaypoints = JSON.parse(xhr.responseText) || {};
+    }
+  };
+  xhr.send();
 
   busSystem.buses = {};
 
@@ -91,10 +99,22 @@ Transportation.BusSystem = (function() {
 
             for (var i = 0; i < json.length; i += 1) {
               busSystem.buses[json[i].RouteAbbreviation + '-' + json[i].VehicleNumber] = json[i];
+              
+              if (!busSystem.routeWaypoints[json[i].RouteAbbreviation]) {
+                busSystem.routeWaypoints[json[i].RouteAbbreviation] = [[json[i].Lat, json[i].Lon]]; 
+              } else {
+                for (var j = 0; j < busSystem.routeWaypoints[json[i].RouteAbbreviation].length; j += 1) {
+                  if (_(busSystem.routeWaypoints[json[i].RouteAbbreviation][j]).isEqual([json[i].Lat, json[i].Lon])) {
+                    // break;
+                  } else if (j === busSystem.routeWaypoints[json[i].RouteAbbreviation].length - 1) {
+                    busSystem.routeWaypoints[json[i].RouteAbbreviation].push([json[i].Lat, json[i].Lon]); 
+                  }
+                }
+              }
               Transportation.Map.addRouteMarker(json[i], json[i].html);
             }
           } catch(e) {
-            var err = e;
+            console.log(e);
           }
           busSystem.updatePositions();
         }
@@ -117,6 +137,7 @@ Transportation.Map = (function() {
     L.tileLayer('http://{s}.tiles.mapbox.com/v3/akosel.i5522e6e/{z}/{x}/{y}.png', {
       maxZoom: 18
       }).addTo(map.container);
+
   };
 
   map.getDistance = function(lat1, lat2, lon1, lon2) {
@@ -134,6 +155,21 @@ Transportation.Map = (function() {
     var d = R * c;
 
     return d;
+  };
+
+  map.routeMarkers = [];
+  map.addRouteMarkers  = function(route) {
+    console.log('adding');
+    _(Transportation.BusSystem.routeWaypoints[route]).each(function(p) { 
+      map.routeMarkers[map.routeMarkers.length] = L.circle(p, route).addTo(map.container);
+    });
+  };
+
+  map.removeRouteMarkers  = function(route) {
+    console.log('removing');
+    _(map.routeMarkers).each(function() {
+      map.container.removeLayer(map.routeMarkers.pop());
+    });
   };
 
   map.addUserMarker = function(latitude, longitude) {
@@ -209,7 +245,14 @@ Transportation.Map = (function() {
 
     var msg = msg || 'Route ' + 1;
     msg += '<p>' + distance.toPrecision(2) + ' miles away</p>';
-    L.marker([busStats.Lat, busStats.Lon], { icon: icon }).addTo(map.container).bindPopup(msg, { 'minWidth': '300'});
+    var marker = L.marker([busStats.Lat, busStats.Lon], { icon: icon })
+
+    marker.on('mouseover', function() {
+      map.removeRouteMarkers()
+      map.addRouteMarkers(busStats.RouteAbbreviation)
+    });
+      
+    marker.addTo(map.container).bindPopup(msg, { 'minWidth': '300'});
     
 
 
