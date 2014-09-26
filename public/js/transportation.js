@@ -159,14 +159,12 @@ Transportation.Map = (function() {
 
   map.routeMarkers = [];
   map.addRouteMarkers  = function(route) {
-    console.log('adding');
     _(Transportation.BusSystem.routeWaypoints[route]).each(function(p) { 
       map.routeMarkers[map.routeMarkers.length] = L.circle(p, route).addTo(map.container);
     });
   };
 
   map.removeRouteMarkers  = function(route) {
-    console.log('removing');
     _(map.routeMarkers).each(function() {
       map.container.removeLayer(map.routeMarkers.pop());
     });
@@ -251,11 +249,13 @@ Transportation.Map = (function() {
       map.removeRouteMarkers()
       map.addRouteMarkers(busStats.RouteAbbreviation)
     });
+    marker.on('click', function() {
+      map.removeRouteMarkers()
+      map.addRouteMarkers(busStats.RouteAbbreviation)
+    });
       
     marker.addTo(map.container).bindPopup(msg, { 'minWidth': '300'});
     
-
-
   };
 
   return map;
