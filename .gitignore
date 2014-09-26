@@ -1,4 +1,5 @@
 *.json
+!routeSystem.json
 data.txt
 *.swp
 node_modules
