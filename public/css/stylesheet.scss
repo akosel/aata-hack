@@ -1,5 +1,7 @@
 $font-stack: Futura, Montserrat, Helvetica;
 
+$media-phone: "only screen and (max-width: 720px)";
+
 #map {
   position: fixed;
   top: 0;
@@ -29,6 +31,11 @@ article {
   background-color: white;
   padding: 2em;
   border-radius: 2em;
+  @media #{media-phone} {
+    width: 200px;
+    height: 200px;
+    margin: -100px 0 0 -100px;
+  }
 }
 
 .rocket{
