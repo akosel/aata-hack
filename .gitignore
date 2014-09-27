@@ -1,4 +1,5 @@
 *.json
+restart_heroku.sh
 !routeSystem.json
 data.txt
 *.swp
