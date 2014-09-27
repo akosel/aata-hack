@@ -21,6 +21,7 @@ header {
 
 article {
   font-family: $font-stack;
+  box-sizing: border-box;
   z-index: 2;
   left: 50%;
   top: 50%;
@@ -31,12 +32,14 @@ article {
   background-color: white;
   padding: 2em;
   border-radius: 2em;
-  @media #{media-phone} {
-    width: 200px;
-    height: 200px;
-    margin: -100px 0 0 -100px;
+
+  @media #{$media-phone} {
+    width: 300px;
+    height: auto;
+    margin: -150px 0 0 -150px;
   }
 }
+
 
 .rocket{
   position:absolute;
