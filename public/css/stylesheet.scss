@@ -27,7 +27,7 @@ article {
   top: 50%;
   position: absolute;
   width: 400px;
-  height: 400px;
+  height: auto;
   margin: -200px 0 0 -200px;
   background-color: white;
   padding: 2em;
@@ -35,7 +35,6 @@ article {
 
   @media #{$media-phone} {
     width: 300px;
-    height: auto;
     margin: -150px 0 0 -150px;
   }
 }

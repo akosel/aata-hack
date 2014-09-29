@@ -1,4 +1,4 @@
-
+// declare the Transportation namespace
 var Transportation = Transportation || {};
 
 Transportation.sendNotification = function(msg) {
@@ -21,14 +21,15 @@ Transportation.clearHelp = function() {
 Transportation.build = function(latitude, longitude) {
   Transportation.Map.initialize(latitude, longitude);
   Transportation.Map.addUserMarker(latitude, longitude);
-  Transportation.BusSystem.updatePositions();
-  Transportation.BusSystem.listen;
+  Transportation.BusSystem.initialize();
 };
 
+// Create a namespace for the user. initializing on page load
 Transportation.User = (function() {
   var user = {};
   Transportation.sendNotification('Attempting to get your current position. Map will load soon after');
 
+  // find their location if possible. performs a few sanity checks
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) { 
       Transportation.sendNotification('Click anywhere outside of this box to view the map!');
@@ -64,6 +65,7 @@ Transportation.User = (function() {
   return user; 
 })();
 
+// the busSystem is the container for all bus related activities 
 Transportation.BusSystem = (function() {
   var busSystem = {};
 
@@ -72,18 +74,41 @@ Transportation.BusSystem = (function() {
   busSystem.routeFilenames = [];
   busSystem.routes = ["1", "1U", "2", "2C", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12A", "12B"]; //, "13", "14", "15", "16", "17", "18", "20", "22", "33", "36", "46", "609", "710"];
   busSystem.routeFilenames = _(busSystem.routes).map(function(r) { return '/data/route' + r + '.json'; });
-
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', '/data/routeSystem.json');
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState === 4) {
-      busSystem.routeWaypoints = JSON.parse(xhr.responseText) || {};
-    }
-  };
-  xhr.send();
-
   busSystem.buses = {};
+  busSystem.routeWaypoints = {};
 
+  // load the route waypoints
+  busSystem.loadRouteWaypoints = function() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/data/routeSystem.json');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        busSystem.routeWaypoints = JSON.parse(xhr.responseText) || {};
+      }
+    };
+    xhr.send();
+  };
+
+  // function to check if a waypoint exists already, and if not adds it in
+  busSystem.updateRouteWaypoints = function(busStats) {
+    var route = busStats.RouteAbbreviation;
+
+    if (!busSystem.routeWaypoints[route]) {
+      busSystem.routeWaypoints[route] = [[busStats.Lat, busStats.Lon]]; 
+    } else {
+      for (var j = 0; j < busSystem.routeWaypoints[route].length; j += 1) {
+        if (_(busSystem.routeWaypoints[route][j]).isEqual([busStats.Lat, busStats.Lon])) {
+          // break;
+        } else if (j === busSystem.routeWaypoints[route].length - 1) {
+          busSystem.routeWaypoints[route].push([busStats.Lat, busStats.Lon]); 
+        }
+      }
+    }
+
+
+  };
+
+  // updates positions of the buses and does a quick waypoint check using long-polling. probably should switch to SSE.
   busSystem.updatePositions = function() {
     if (busSystem.currentRouteIdx === busSystem.routeFilenames.length) {
       busSystem.currentRouteIdx = 0;
@@ -97,21 +122,13 @@ Transportation.BusSystem = (function() {
           try {
             var json = JSON.parse(data.responseText);
 
+
             for (var i = 0; i < json.length; i += 1) {
               busSystem.buses[json[i].RouteAbbreviation + '-' + json[i].VehicleNumber] = json[i];
+
+              busSystem.updateRouteWaypoints(json[i]);
               
-              if (!busSystem.routeWaypoints[json[i].RouteAbbreviation]) {
-                busSystem.routeWaypoints[json[i].RouteAbbreviation] = [[json[i].Lat, json[i].Lon]]; 
-              } else {
-                for (var j = 0; j < busSystem.routeWaypoints[json[i].RouteAbbreviation].length; j += 1) {
-                  if (_(busSystem.routeWaypoints[json[i].RouteAbbreviation][j]).isEqual([json[i].Lat, json[i].Lon])) {
-                    // break;
-                  } else if (j === busSystem.routeWaypoints[json[i].RouteAbbreviation].length - 1) {
-                    busSystem.routeWaypoints[json[i].RouteAbbreviation].push([json[i].Lat, json[i].Lon]); 
-                  }
-                }
-              }
-              Transportation.Map.addRouteMarker(json[i], json[i].html);
+              Transportation.Map.addBusMarker(json[i], json[i].html);
             }
           } catch(e) {
             console.log(e);
@@ -123,7 +140,10 @@ Transportation.BusSystem = (function() {
     }
   };
 
-  busSystem.listen = setInterval(busSystem.updatePositions, 10000);
+  busSystem.initialize = function() {
+    busSystem.loadRouteWaypoints();
+    busSystem.listen = setInterval(busSystem.updatePositions, 10000);
+  };
 
   return busSystem;
 }());
@@ -131,6 +151,10 @@ Transportation.BusSystem = (function() {
 Transportation.Map = (function() {
   var map = {};
 
+  // map properties
+  map.routeMarkers = [];
+
+  // map initializer
   map.initialize = function(latitude, longitude) {
     map.container = L.map('map').setView([latitude, longitude], 14);
 
@@ -140,6 +164,7 @@ Transportation.Map = (function() {
 
   };
 
+  // basic haversine distance calc. probably should use built-in leaflet 
   map.getDistance = function(lat1, lat2, lon1, lon2) {
     var R = 3959; // mi
     var r1 = Math.PI * lat1 / 180;
@@ -157,19 +182,25 @@ Transportation.Map = (function() {
     return d;
   };
 
-  map.routeMarkers = [];
+  // adds markers with route waypoints to the map for a given route
   map.addRouteMarkers  = function(route) {
     _(Transportation.BusSystem.routeWaypoints[route]).each(function(p) { 
-      map.routeMarkers[map.routeMarkers.length] = L.circle(p, route).addTo(map.container);
+      try {
+        map.routeMarkers[map.routeMarkers.length] = L.circle(p, route).addTo(map.container);
+      } catch(e) {
+        console.log(e);
+      }
     });
   };
 
-  map.removeRouteMarkers  = function(route) {
+  // removes any markers for route waypoints
+  map.removeRouteMarkers  = function() {
     _(map.routeMarkers).each(function() {
       map.container.removeLayer(map.routeMarkers.pop());
     });
   };
 
+  // add the marker for our user to the map
   map.addUserMarker = function(latitude, longitude) {
     if (!map.container) {
       return;
@@ -179,12 +210,13 @@ Transportation.Map = (function() {
       color: 'red',
       className: 'user',
       fillColor: 'red',
-      fillOpacity: 1
+      fillOpacity: .8
     }).addTo(map.container);
     Transportation.Map.userMarker.bindPopup('This is you!');
 
   };
   
+  // function to set our marker color
   map.getMarkerColor = function(direction) {
     var upD = direction.toUpperCase();
     if (upD === "TO DOWNTOWN" || upD === "TO ANN ARBOR") {
@@ -197,6 +229,8 @@ Transportation.Map = (function() {
 
   };
 
+  // function to set bus icon based on direction
+  // improvement would be to not use png, and try to do this with css alone
   map.getMarkerIcon = function(direction) {
     var upD = direction.toUpperCase();
     if (upD === "TO DOWNTOWN" || upD === "TO ANN ARBOR") {
@@ -209,11 +243,15 @@ Transportation.Map = (function() {
 
   };
 
-  map.addRouteMarker = function(busStats, msg) {
+  // adds bus to the map
+  //
+  // busStats is an object containing information about the given bus received from the AATA
+  map.addBusMarker = function(busStats, msg) {
     if (!map.container) {
       return;
     }
 
+    // use to get a naive idea of how far the nearest bus is from the user.
     var distance = Transportation.Map.getDistance(Transportation.User.position.coords.latitude, busStats.Lat, Transportation.User.position.coords.longitude, busStats.Lon);
 
     Transportation.User.currentMinDistance = distance < Transportation.User.currentMinDistance || !Transportation.User.currentMinDistance ? distance : Transportation.User.currentMaxDistance;
@@ -223,28 +261,25 @@ Transportation.Map = (function() {
       uber.getTime(uber.params);
     }
     
+    // remove existing bus point from the map
     var head = document.querySelector('.head-' + busStats.VehicleNumber);
     if (head) { 
       head.parentNode.removeChild(head);
     }
 
-    // var circle = L.circle([busStats.Lat, busStats.Lon], 100, {
-    //   className: 'head-' + busStats.VehicleNumber,
-    //   fillColor: map.getMarkerColor(busStats.direction),
-    //   color: 'black',
-    //   fillOpacity: 0.8
-    // }).addTo(map.container);
-    // circle.bindPopup(msg, { 'minWidth': '300'});
+    // set up our icon
     var icon = L.icon({
       iconUrl: map.getMarkerIcon(busStats.direction),
       iconSize: [50, 50],
       className: 'head-' + busStats.VehicleNumber
     });
 
+    // create a message to be display in a popup
     var msg = msg || 'Route ' + 1;
     msg += '<p>' + distance.toPrecision(2) + ' miles away</p>';
     var marker = L.marker([busStats.Lat, busStats.Lon], { icon: icon })
 
+    // add a few event listeners to display the route map on hover over
     marker.on('mouseover', function() {
       map.removeRouteMarkers()
       map.addRouteMarkers(busStats.RouteAbbreviation)
@@ -254,14 +289,16 @@ Transportation.Map = (function() {
       map.addRouteMarkers(busStats.RouteAbbreviation)
     });
       
+    // and finally, add the marker and bind the popup
     marker.addTo(map.container).bindPopup(msg, { 'minWidth': '300'});
     
   };
 
   return map;
 
-}());
+})();
 
+// basic uber api wrapper. 
 Transportation.Uber = function(latitude, longitude) {
   var uber = this;
 
@@ -311,7 +348,7 @@ Transportation.Uber = function(latitude, longitude) {
        if (xhr.readyState === 4) {
            var resp = JSON.parse(xhr.responseText);
            uber.products = resp.products;
-           Transportation.addNotification('Here are some currently available products:\n ' + JSON.stringify(resp));
+//           Transportation.addNotification('Here are some currently available products:\n ' + JSON.stringify(resp));
        }
     };
     xhr.send();
