@@ -1,5 +1,5 @@
 var express = require('express');
-var harvest = require('./harvest');
+var harvest = require('./easy-harvest');
 var app = express();
 app.set('views', './views');
 app.set('view engine', 'jade');
@@ -8,6 +8,11 @@ app.use(express.static(__dirname + '/public'));
 // only page for application renders are map template
 app.get('/', function(req, res) {
   res.render('map');
+});
+
+// only page for application renders are map template
+app.get('/tl', function(req, res) {
+  res.render('traffic-light');
 });
 
 // server starts, running the harvester. 

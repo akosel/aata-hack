@@ -1,0 +1,45 @@
+html
+  head
+    meta(name="viewport", content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no")
+    link(rel='stylesheet', href='/css/stylesheet.css')
+  body
+    header
+      article
+        #notifications
+          .adherence
+          .timestamp
+        noscript Whoops, looks like you don't have Javascript enabled. The site won't really work without it, so enable that if you can
+
+  script(src='/js/underscore-min.js')
+  script(src='/js/backbone-min.js')
+  script(src='/js/overlay.js')
+  script.
+    setInterval(function() {     
+        console.log('requesting');
+        var xhr = new XMLHttpRequest();
+        xhr.open('get', '/data/bus.json');
+        xhr.onreadystatechange = function() {
+          if (this.readyState === 4) {
+            console.log(xhr.responseText);
+            var $notifications = document.querySelector('#notifications');
+            var $adherence = document.querySelector('.adherence');
+            var $timestamp = document.querySelector('.timestamp');
+
+            var json = JSON.parse(xhr.responseText);
+            console.log(json);
+            var toBusGroup = [];
+            _(json).each(function(v) {
+                if (v.direction === 'To Downtown') {
+                  toBusGroup.push(v);
+                }
+            });
+
+            adherence = toBusGroup[0].adherence;
+            timestamp = toBusGroup[0].timestamp;
+
+            $adherence.textContent = adherence;
+            $timestamp.textContent = timestamp;
+          }
+        }
+        xhr.send();
+    }, 1000);
