@@ -2,7 +2,7 @@ var spawn = require('child_process').spawn;
 var assert = require('assert');
 
 // expose harvest to the application
-module.exports = harvest;
+// module.exports = harvest;
 
 // function to start connections based on routeList provided. default to include around half of bus routes available.
 function harvest(routeList) {

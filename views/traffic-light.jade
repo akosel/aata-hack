@@ -13,20 +13,21 @@ html
   script(src='/js/underscore-min.js')
   script(src='/js/backbone-min.js')
   script(src='/js/overlay.js')
+  script(src='/js/moment.js')
   script.
     setInterval(function() {     
-        console.log('requesting');
+        // console.log('requesting');
         var xhr = new XMLHttpRequest();
         xhr.open('get', '/data/bus.json');
         xhr.onreadystatechange = function() {
           if (this.readyState === 4) {
-            console.log(xhr.responseText);
-            var $notifications = document.querySelector('#notifications');
+            // console.log(xhr.responseText);
+            var $header = document.querySelector('article');
             var $adherence = document.querySelector('.adherence');
             var $timestamp = document.querySelector('.timestamp');
 
             var json = JSON.parse(xhr.responseText);
-            console.log(json);
+            // console.log(json);
             var toBusGroup = [];
             _(json).each(function(v) {
                 if (v.direction === 'To Downtown') {
@@ -39,6 +40,23 @@ html
 
             $adherence.textContent = adherence;
             $timestamp.textContent = timestamp;
+
+            var fmt = 'HH:mm';
+            var hour = moment().hour();
+            var minute = moment().minute();
+            
+            var stopMinutes = [4, 34];
+            
+            var timeToNextStop = stopMinutes.map(function(v) { var next = v - minute <= 0 ? v + 60 - minute : v - minute; return next; });
+
+            var minutesLeft = _(timeToNextStop).min();
+
+            if (minutesLeft < 10) {
+                $header.style.backgroundColor = '#0f0';
+            } else {
+                $header.style.backgroundColor = '#666';
+            }
+
           }
         }
         xhr.send();

@@ -1,4 +1,4 @@
-var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
 var assert = require('assert');
 
 // expose harvest to the application
@@ -15,9 +15,10 @@ function harvest(routeList) {
   var id = setInterval(function() { 
     console.log(routes[routeIdx]);
 
-  var phantom = spawn('phantomjs', ['easy-request.js', routes[routeIdx]]);
-  phantom.stdout.on('data', function(data) {
-    console.log(data);
-  });
+    exec('phantomjs easy-request.js ' + routes[routeIdx]);
   }, 5000);
+
+  setInterval(function() {
+    exec('killall phantomjs');
+  }, 100000);
 }
