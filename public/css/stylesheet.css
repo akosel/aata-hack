@@ -14,8 +14,19 @@ header {
   right: 0;
   background: rgba(0, 0, 0, 0.8); }
 
+main {
+  font-family: "Gill Sans", Montserrat, Helvetica;
+  font-size: 36px;
+  line-height: 2em;
+  width: 1024px;
+  margin: 0 auto; }
+
+main .info {
+  text-align: right;
+  float: right; }
+
 article {
-  font-family: Futura, Montserrat, Helvetica;
+  font-family: "Gill Sans", Montserrat, Helvetica;
   box-sizing: border-box;
   z-index: 2;
   left: 50%;
@@ -44,18 +55,35 @@ article {
   animation: orbit 2s linear infinite;
   transition: background-position 0.8s; }
 
+.circle {
+  border-radius: 50px;
+  width: 50px;
+  height: 50px;
+  display: none; }
+
+.circle:not(:first-child) {
+  margin-top: 30px; }
+
+.go {
+  background-color: #5AFF55; }
+
+.set {
+  background-color: #FFD127; }
+
+.ready {
+  background-color: #F60; }
+
 @-webkit-keyframes orbit {
   from {
     -webkit-transform: rotate(0deg); }
-
   to {
     -webkit-transform: rotate(360deg); } }
-
 @keyframes orbit {
   from {
     transform: rotate(0deg);
     -webkit-transform: rotate(0deg); }
-
   to {
     transform: rotate(360deg);
     -webkit-transform: rotate(360deg); } }
+
+/*# sourceMappingURL=stylesheet.css.map */

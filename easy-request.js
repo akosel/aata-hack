@@ -2,7 +2,6 @@ var fs = require('fs');
 var system = require('system');
 
 var route = system.args[1] || 1;
-console.log('start route', route);
 harvest(route);
 
 function harvest(route) {
@@ -15,6 +14,6 @@ function harvest(route) {
         });
         console.log(json);
     }   
-    fs.write('./public/data/bus.json', json);
+    phantom.exit();
   });
 }

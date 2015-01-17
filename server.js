@@ -1,9 +1,14 @@
 var express = require('express');
 var harvest = require('./easy-harvest');
 var app = express();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 app.set('views', './views');
 app.set('view engine', 'jade');
 app.use(express.static(__dirname + '/public'));
+
+// server starts, running the harvester. 
+server.listen(process.env.PORT || 8000); 
 
 // only page for application renders are map template
 app.get('/', function(req, res) {
@@ -15,26 +20,10 @@ app.get('/tl', function(req, res) {
   res.render('traffic-light');
 });
 
-// server starts, running the harvester. 
-var server = app.listen(process.env.PORT || 8000, function() {
+io.on('connection', function(socket) {
 
-  console.log('harvesting');
-  // calls harvest
-  harvest();
-  // var routes = ["1", "1U", "2", "2C", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12A", "12B"]; //, "13", "14", "15", "16", "17", "18", "20", "22", "33", "36", "46", "609", "710"];
-  // var routeIdx = 0;
+  socket.emit('news', 'harvesting');
+  harvest(socket);
+  console.log('listening on ' + (process.env.PORT || 8000));
 
-  // var id = setInterval(function() { 
-  //   console.log(routes[routeIdx]);
-  //   if (routeIdx < routes.length - 1) { 
-  //     var phantom = spawn('phantomjs', ['ajax-response.js', routes[routeIdx]]);
-  //     phantom.stdout.on('data', function(data) {
-  //       console.log(data);
-  //     });
-  //     routeIdx += 1;
-  //   } else {
-  //     clearInterval(id);
-  //   } 
-  // }, 2000);
-  console.log('listening');
 });

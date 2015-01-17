@@ -1,4 +1,4 @@
-$font-stack: Futura, Montserrat, Helvetica;
+$font-stack: 'Gill Sans', Montserrat, Helvetica;
 
 $media-phone: "only screen and (max-width: 720px)";
 
@@ -17,6 +17,19 @@ header {
   bottom: 0;
   right: 0;
   background: rgba(0, 0, 0, 0.8);
+}
+
+main {
+  font-family: $font-stack;
+  font-size: 36px;
+  line-height: 2em;
+  width: 1024px;
+  margin: 0 auto;
+}
+
+main .info {
+  text-align: right;
+  float: right;
 }
 
 article {
@@ -53,6 +66,29 @@ article {
   animation:orbit 2s linear infinite;
 
   transition:background-position 0.8s;
+}
+
+.circle {
+  border-radius: 50px;
+  width: 50px;
+  height: 50px;
+  display: none;
+}
+
+.circle:not(:first-child) {
+  margin-top: 30px;
+}
+
+.go {
+  background-color: #5AFF55;
+}
+
+.set {
+  background-color: #FFD127;
+}
+
+.ready {
+  background-color: #F60;
 }
 
 @-webkit-keyframes orbit {
