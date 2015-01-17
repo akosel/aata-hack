@@ -15,7 +15,8 @@
     "jade": "^1.7.0",
     "leaflet-routing-machine": "^1.0.0",
     "moment": "^2.9.0",
-    "phantomjs": "^1.9.9"
+    "phantomjs": "^1.9.9",
+    "socket.io": "^1.2.1"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
