@@ -81,7 +81,7 @@ function setTrafficLight(minutesLeft) {
 }
 
 function addInput(buttonText, type, isLimit) {
-  if (document.querySelector('.' + type) && isLimit) {
+  if ((document.querySelector('.' + type) && isLimit)) {
     return;
   }
   
@@ -91,6 +91,7 @@ function addInput(buttonText, type, isLimit) {
   $button.textContent = buttonText;
 
   $input.className = type;
+  $input.type = 'number';
   $button.className = type;
 
   $notifications.appendChild($input);
@@ -128,20 +129,47 @@ function addInput(buttonText, type, isLimit) {
       $input.remove();
       pageSetup();
     }
+  } else if (type === 'route') {
+    $button.onclick = function(e) {
+      if (!$input.value) {
+          return;
+      }
+
+      setRoute($input.value);
+
+      $button.remove();
+      $input.remove();
+      pageSetup();
+    }
   }
 }
 
 function pageSetup() {
   if (!getStopMinutes()) {
+    document.querySelector('header').style.display = 'block';
     addInput('Set the first stop minute', 'stopMinutes', false);
     addInput('Set the second stop minute (optional)', 'stopMinutes', false);
   }
   if (!getWalkTime()) {
+    document.querySelector('header').style.display = 'block';
     addInput('Set walk time', 'walkTime', true);
   }
-  if (getWalkTime() && getStopMinutes()) {
-    document.querySelector('header').remove();
+  if (!getRoute()) {
+    document.querySelector('header').style.display = 'block';
+    addInput('Set route', 'route', true);
+  }
+  if (getWalkTime() && getStopMinutes() && getRoute()) {
+    document.querySelector('header').style.display = 'none';
     startClock();
+    socket.emit('route', getRoute());
+
+    $reset = document.querySelector('.controls a');
+    $reset.onclick = function (e) {
+      e.preventDefault();
+
+      localStorage.clear();
+      pageSetup();
+    };
   }
 }
 
@@ -153,12 +181,21 @@ function setWalkTime(walkTime) {
   localStorage.setItem('walkTime', walkTime); 
 }
 
+function setRoute(route) {
+  localStorage.setItem('route', route); 
+  socket.emit('route', route);
+}
+
 function getStopMinutes() {
   return localStorage.getItem('stopMinutes'); 
 }
 
 function getWalkTime() {
   return localStorage.getItem('walkTime'); 
+}
+
+function getRoute() {
+  return localStorage.getItem('route'); 
 }
 
 pageSetup();

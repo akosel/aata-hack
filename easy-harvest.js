@@ -4,24 +4,33 @@ var assert = require('assert');
 
 // expose harvest to the application
 module.exports = function(socket) {
-  var routes = ["1"]; //, "13", "14", "15", "16", "17", "18", "20", "22", "33", "36", "46", "609", "710", "711"];
+  var intervals = [];
+  var routeToRouteId = { 1: 1 };
 
-  assert(routes, 'routes should exist');
-  var routeIdx = 0;
+  socket.on('route', function(route) {
+    console.log('route event fired');
+    if (intervals.length) {
+      console.log('clearing intervals');
+      while (intervals.length) {
+        clearTimeout(intervals.pop());
+      }
+    }
+    var id = setInterval(function() { 
+        routeId = routeToRouteId[route];
 
-  var id = setInterval(function() { 
+        exec('phantomjs easy-request.js ' + routeId, function(error, stdout, stderr) {
+            console.log('stderr', stderr, error);
+            try {
+                var result = JSON.parse(stdout);
+                socket.emit('busData', result);
+            } catch(e) {
+                socket.emit('news', e);
+            }
+        });
 
-    console.log('harvest function');
-    socket.emit('news', 'requesting');
-    exec('phantomjs easy-request.js ' + routes[routeIdx], function(error, stdout, stderr) {
-        console.log('stderr', stderr, error);
-        try {
-            var result = JSON.parse(stdout);
-            socket.emit('busData', result);
-        } catch(e) {
-            socket.emit('news', e);
-        }
-    });
-  }, 5000);
+    }, 5000);
+
+    intervals.push(id);
+  });
 
 };

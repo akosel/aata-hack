@@ -2,6 +2,9 @@ $font-stack: 'Gill Sans', Montserrat, Helvetica;
 
 $media-phone: "only screen and (max-width: 720px)";
 
+body {
+  font-family: $font-stack;
+}
 #map {
   position: fixed;
   top: 0;
@@ -19,12 +22,29 @@ header {
   background: rgba(0, 0, 0, 0.8);
 }
 
+.config {
+  display: none;
+}
+
 main {
-  font-family: $font-stack;
   font-size: 36px;
   line-height: 2em;
   width: 1024px;
   margin: 0 auto;
+  overflow: visible;
+
+  @media #{$media-phone} {
+    width: 300px;
+  }
+}
+
+footer {
+  width: 1024px;
+  font-size: 24px;
+  margin: 0 200px;
+  position: fixed;
+  height: 30px;
+  bottom: 0;
 }
 
 main .info {
@@ -33,7 +53,6 @@ main .info {
 }
 
 article {
-  font-family: $font-stack;
   box-sizing: border-box;
   z-index: 2;
   left: 50%;

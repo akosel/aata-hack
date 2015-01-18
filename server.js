@@ -22,6 +22,9 @@ app.get('/tl', function(req, res) {
 
 io.on('connection', function(socket) {
 
+  socket.on('news', function(data) {
+    console.log(data);
+  });
   socket.emit('news', 'harvesting');
   harvest(socket);
   console.log('listening on ' + (process.env.PORT || 8000));

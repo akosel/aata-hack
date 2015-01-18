@@ -1,3 +1,6 @@
+body {
+  font-family: "Gill Sans", Montserrat, Helvetica; }
+
 #map {
   position: fixed;
   top: 0;
@@ -14,19 +17,32 @@ header {
   right: 0;
   background: rgba(0, 0, 0, 0.8); }
 
+.config {
+  display: none; }
+
 main {
-  font-family: "Gill Sans", Montserrat, Helvetica;
   font-size: 36px;
   line-height: 2em;
   width: 1024px;
-  margin: 0 auto; }
+  margin: 0 auto;
+  overflow: visible; }
+  @media only screen and (max-width: 720px) {
+    main {
+      width: 300px; } }
+
+footer {
+  width: 1024px;
+  font-size: 24px;
+  margin: 0 200px;
+  position: fixed;
+  height: 30px;
+  bottom: 0; }
 
 main .info {
   text-align: right;
   float: right; }
 
 article {
-  font-family: "Gill Sans", Montserrat, Helvetica;
   box-sizing: border-box;
   z-index: 2;
   left: 50%;
