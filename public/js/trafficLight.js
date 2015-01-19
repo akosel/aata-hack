@@ -49,15 +49,15 @@ _(BusAlertMgr.prototype).extend({
 
       var bus = toBusGroup[0];
       
-      var updateValues = this.options.dashItems;
+      var updateValues = self.options.dashItems;
 
       _(updateValues).each(function(val) {
-        updateElement(val, bus[val]); 
+        self._updateElement(val, bus[val]); 
       });
 
     });
 
-    _(this.options.selectorClasses).each(function(c) {
+    _(self.options.selectorClasses).each(function(c) {
       self.$selectors[c] = document.querySelector('.' + c);
     });
 
