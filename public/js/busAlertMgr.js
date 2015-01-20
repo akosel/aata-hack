@@ -186,7 +186,7 @@ _(BusAlertMgr.prototype).extend({
     var self = this;
     var lateBy = 0;
     this.socket.on('busData', function(data) { 
-      lateBy = this._getLateBy(data[0].adherence);
+      lateBy = self._getLateBy(data[0].adherence);
     });
     setInterval(function() {
       var fmt = 'HH:mm';
