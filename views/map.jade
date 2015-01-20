@@ -7,9 +7,9 @@ html
   body
     header
       article
-        #notifications
+        .notifications
         noscript Whoops, looks like you don't have Javascript enabled. The site won't really work without it, so enable that if you can
-        #help
+        .help
           h3 What is this?
           p This map shows where all of the buses in the AATA are currently located. This is a small side project of mine to try to come up with a better way of figuring out when I need to catch the bus.
           p A number of improvements need to be made, so as it stands it's mostly a playground where I can mess around with mapping.
@@ -17,9 +17,11 @@ html
     #map
       .rocket
 
+  script(src='/socket.io/socket.io.js')
   script(src='/js/underscore-min.js')
-  script(src='/js/backbone-min.js')
   script(src='/js/transportation.js')
   script(src='/js/overlay.js')
+  script(src='/js/mapMgr.js')
   script(src='/js/leaflet-routing-machine.min.js')
-
+  script.
+    var mapMgr = new MapMgr();

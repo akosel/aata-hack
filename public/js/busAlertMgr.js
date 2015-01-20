@@ -33,8 +33,7 @@ _(BusAlertMgr.prototype).extend({
 
   init: function() {
     var self = this;
-    console.log('init');
-    
+
     // listen to the server for changes to the bus data
     this.socket.on('busData', function(json) {
       var toBusGroup = [];
@@ -185,15 +184,17 @@ _(BusAlertMgr.prototype).extend({
   _startClock: function() {
     var self = this;
     var lateBy = 0;
+    var fmt = 'HH:mm';
+    var $timestamp = document.querySelector('.timestamp');
+
     this.socket.on('busData', function(data) { 
       lateBy = self._getLateBy(data[0].adherence);
     });
+
     setInterval(function() {
-      var fmt = 'HH:mm';
       var hour = moment().hour();
       var minute = moment().minute();
       var second = moment().second();
-      var $timestamp = document.querySelector('.timestamp');
       var stopMinutesStr = self._getItem('stopMinutes');
       var stopMinutes = JSON.parse(stopMinutesStr).map(function(v) { return Number(v); });
 

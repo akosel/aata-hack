@@ -3,19 +3,19 @@ var Transportation = Transportation || {};
 
 Transportation.sendNotification = function(msg) {
   document.querySelector('header').style.display = 'block';
-  document.getElementById('notifications').innerHTML = '<strong>' + msg + '</strong><br>';
+  document.querySelector('.notifications').innerHTML = '<strong>' + msg + '</strong><br>';
 };
 
 Transportation.addNotification = function(msg) {
-  document.getElementById('notifications').innerHTML += '<br><strong>' + msg + '</strong><br>';
+  document.querySelecto('.notifications').innerHTML += '<br><strong>' + msg + '</strong><br>';
 };
 
 Transportation.clearNotifications = function() {
-  document.querySelector('#notifications').innerHTML = "";
+  document.querySelector('.notifications').innerHTML = "";
 };
 
 Transportation.clearHelp = function() {
-  document.querySelector('#help').innerHTML = "";
+  document.querySelector('.help').innerHTML = "";
 };
 
 Transportation.build = function(latitude, longitude) {
