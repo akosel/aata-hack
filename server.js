@@ -17,7 +17,7 @@ app.get('/', function(req, res) {
 
 // only page for application renders are map template
 app.get('/tl', function(req, res) {
-  res.render('traffic-light');
+  res.render('busAlert');
 });
 
 io.on('connection', function(socket) {
