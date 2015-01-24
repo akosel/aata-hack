@@ -20,6 +20,8 @@
       this.socket.on('busData', function(data) {
         console.log('data', data);
       });
+
+      this.socket.emit('route', localStorage.getItem('route'));
     },
 
     _processCoordinates: function(lat, lng) {
