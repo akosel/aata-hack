@@ -264,8 +264,19 @@ _(BusAlertMgr.prototype).extend({
       var minutesLeft = _(timeToNextStop).min();
 
       $timestamp.textContent = minutesLeft + ':' + moment((59 - second) * 1000).format('ss');
-      self._setBgColor(minutesLeft);
     }, 1000);
+
+    setInterval(function() {
+      var hour = moment().hour();
+      var minute = moment().minute();
+      var second = moment().second();
+      var stopMinutesStr = self._getItem('stopMinutes');
+      var stopMinutes = JSON.parse(stopMinutesStr).map(function(v) { return Number(v); });
+
+      var timeToNextStop = stopMinutes.map(function(v) { var next = v - minute + lateBy < 0 ? v + 59 - minute + lateBy : v - minute + lateBy - 1; return next; });
+      var minutesLeft = _(timeToNextStop).min();
+      self._setBgColor(minutesLeft);
+    }, 5000);
   },
 
 
@@ -274,12 +285,18 @@ _(BusAlertMgr.prototype).extend({
 
     if (minutesLeft < walkTime) {
       document.querySelector('body').className = 'go';
+      this.socket.emit('lightData', { className: 'go', pinState: 1 });
     } else if (minutesLeft < walkTime + 2) {
       document.querySelector('body').className = 'set';
+      this.socket.emit('lightData', { className: 'set', pinState: 1 });
     } else if (minutesLeft < walkTime + 5) {
       document.querySelector('body').className = 'ready';
+      this.socket.emit('lightData', { className: 'ready', pinState: 1 });
     } else {
       document.querySelector('body').className = '';
+      this.socket.emit('lightData', { className: 'ready', pinState: 0 });
+      this.socket.emit('lightData', { className: 'set', pinState: 0 });
+      this.socket.emit('lightData', { className: 'go', pinState: 0 });
     }
 
   },
