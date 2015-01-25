@@ -9,7 +9,7 @@ window.BusAlertMgr = function(args) {
         name: 'Stop Minute',
         labelText: 'Add up to two stop minutes (i.e. if the bus leaves at 8:04am, write 4. If it leaves at 8:48am, write 48.)',
         allowMultiple: true,
-        $inputs: [],
+        $formElements: [],
         inputConfig: {
           type: 'number',
           min: 0,
@@ -20,7 +20,7 @@ window.BusAlertMgr = function(args) {
         name: 'Walk Time',
         labelText: 'Set the time it takes you to walk to the bus stop',
         allowMultiple: false,
-        $inputs: [],
+        $formElements: [],
         inputConfig: {
           type: 'number',
           min: 0
@@ -30,7 +30,7 @@ window.BusAlertMgr = function(args) {
         name: 'Route',
         labelText: 'Set the route you care about',
         allowMultiple: false,
-        $inputs: [],
+        $formElements: [],
         inputConfig: {
           type: 'select',
           min: 0,
@@ -38,7 +38,8 @@ window.BusAlertMgr = function(args) {
         }
       }
     },
-    selectorClasses: ['config', 'notifications', 'reset']
+    selectorClasses: ['config', 'notifications', 'reset'],
+    routes: ['1', '1U', '2', '2C', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12A', '12B', '13', '14', '15', '16', '17', '18', '20', '22', '33', '36', '39', '46', '351', '352', '353', '354', '501', '502', '505', '609', '710', '711', '787']
   };
   this.options = _({}).extend(this.defaults, args);
   this.socket = io.connect(window.location.origin);
@@ -71,6 +72,12 @@ _(BusAlertMgr.prototype).extend({
         self._updateElement(val, bus[val]); 
       });
 
+    });
+
+    this.socket.on('abbrToId', function(json) {
+      console.log('reset abbrToId', json);
+      self.abbrToId = Object.keys(json);
+      // TODO sort them, by number, not string
     });
 
     _(self.options.selectorClasses).each(function(c) {
@@ -109,7 +116,7 @@ _(BusAlertMgr.prototype).extend({
   },
 
   _addInput: function(val) {
-    $input = document.createElement('input');
+    var $input = document.createElement('input');
     $input.placeholder = this.options.userConfig[val].name;
     $input.type = 'number';
     $input.min = 0;
@@ -117,12 +124,32 @@ _(BusAlertMgr.prototype).extend({
     $input.required = true;
     $input.className = val;
     
-    this.options.userConfig[val].$inputs.push($input);
+    this.options.userConfig[val].$formElements.push($input);
     this.$selectors[val].appendChild($input);
   },
 
+  _addDropdown: function(val) {
+    var self = this;
+    var $select = document.createElement('select');
+
+    for (var i = 0; i < this.options.routes.length; i += 1) {
+      var $option = document.createElement('option');
+      $option.value = this.options.routes[i];
+      $option.textContent = this.options.routes[i];
+      $select.appendChild($option);
+    }
+
+    $select.onchange = function() {
+      $select.value = self.options.routes[$select.selectedIndex]; 
+      console.log('NEW VALUE: ', $select.value);
+    };
+
+    this.options.userConfig[val].$formElements.push($select);
+    this.$selectors[val].appendChild($select);
+  },
+
   _addButton: function(args, clickFn) {
-    $button = document.createElement('button');
+    var $button = document.createElement('button');
     $button.type = 'button';
     $button.textContent = args.text;
     $button.className = args.className || '';
@@ -132,12 +159,8 @@ _(BusAlertMgr.prototype).extend({
     this.$selectors[args.context].appendChild($button);
   },
 
-  _addDropdown: function(args) {
-    
-  },
-
   _addBox: function(val) {
-    $div = document.createElement('div');
+    var $div = document.createElement('div');
     $div.className = val + ' box';
 
     var $label = document.createElement('p');
@@ -155,7 +178,13 @@ _(BusAlertMgr.prototype).extend({
 
     _(userConfigKeys).each(function(val) {
       self._addBox(val);
-      self._addInput(val);
+
+      if (self.options.userConfig[val].inputConfig.type === 'select') {
+        self._addDropdown(val);
+      } else {
+        self._addInput(val);
+      }
+
       if (self.options.userConfig[val].allowMultiple) {
           self._addInput(val);
       }
@@ -170,25 +199,37 @@ _(BusAlertMgr.prototype).extend({
 
       _(userConfigKeys).each(function(key) {
         var value;
+        var $formElements = self.options.userConfig[key].$formElements;
+
         if (self.options.userConfig[key].allowMultiple) {
-          $input = document.querySelectorAll('input.' + key);
+
           value = [];
-          _($input).each(function($numberInput) {
-            value.push($numberInput.value);
-          })
+          _($formElements).each(function ($elem) {
+            if ($elem.value) {
+              value.push($elem.value);
+            }
+          });
           value = JSON.stringify(value);
         } else {
-          $input = document.querySelector('input.' + key);
-          value = $input.value;
+          console.log($formElements);
+          value = $formElements[0].value; 
         }
 
         self._setItem(key, value);
       });
-      self.$selectors['notifications'].innerHTML = null;
-      self.$selectors['config'].style.display = 'none';
-      self._pageSetup();
+      this.hideConfig();
     });
 
+  },
+
+  hideConfig: function () {
+    var self = this;
+    _(Object.keys(this.options.userConfig)).each(function(key) {
+      self.options.userConfig[key].$formElements = [];
+    });
+    this.$selectors['notifications'].innerHTML = null;
+    this.$selectors['config'].style.display = 'none';
+    this._pageSetup();
   },
 
   _getLateBy: function(adherence) {
@@ -223,12 +264,12 @@ _(BusAlertMgr.prototype).extend({
       var minutesLeft = _(timeToNextStop).min();
 
       $timestamp.textContent = minutesLeft + ':' + moment((59 - second) * 1000).format('ss');
-      self._setTrafficLight(minutesLeft);
+      self._setBgColor(minutesLeft);
     }, 1000);
   },
 
 
-  _setTrafficLight: function(minutesLeft) {
+  _setBgColor: function(minutesLeft) {
     var walkTime = Number(this._getItem('walkTime'));
 
     if (minutesLeft < walkTime) {
