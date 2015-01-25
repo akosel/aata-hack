@@ -1,9 +1,9 @@
 var express = require('express');
 var harvest = require('./harvest');
-var piLight = require('./piLight');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+
 app.set('views', './views');
 app.set('view engine', 'jade');
 app.use(express.static(__dirname + '/public'));
@@ -29,9 +29,10 @@ io.on('connection', function(socket) {
   });
   harvest(socket);
   try {
+    var piLight = require('./piLight');
     piLight(socket);
   } catch(e) {
-    console.log('gpio not available in this context'); 
+    console.log(e); 
   }
   console.log('listening on ' + (process.env.PORT || 8000));
 
