@@ -6,19 +6,36 @@ window.BusAlertMgr = function(args) {
     dashItems: ['adherence', 'direction'],
     userConfig: {
       stopMinutes: {
-        placeholderText: 'Add stop minute (i.e. if the bus leaves at four after the hour, write 4)',
+        name: 'Stop Minute',
+        labelText: 'Add up to two stop minutes (i.e. if the bus leaves at 8:04am, write 4. If it leaves at 8:48am, write 48.)',
         allowMultiple: true,
-        $inputs: []
+        $inputs: [],
+        inputConfig: {
+          type: 'number',
+          min: 0,
+          max: 59
+        }
       }, 
       walkTime: {
-        placeholderText: 'Set the time it takes you to walk to the bus stop',
+        name: 'Walk Time',
+        labelText: 'Set the time it takes you to walk to the bus stop',
         allowMultiple: false,
-        $inputs: []
+        $inputs: [],
+        inputConfig: {
+          type: 'number',
+          min: 0
+        }
       }, 
       route: {
-        placeholderText: 'Set the route you care about',
+        name: 'Route',
+        labelText: 'Set the route you care about',
         allowMultiple: false,
-        $inputs: []
+        $inputs: [],
+        inputConfig: {
+          type: 'select',
+          min: 0,
+          max: 59
+        }
       }
     },
     selectorClasses: ['config', 'notifications', 'reset']
@@ -93,8 +110,10 @@ _(BusAlertMgr.prototype).extend({
 
   _addInput: function(val) {
     $input = document.createElement('input');
+    $input.placeholder = this.options.userConfig[val].name;
     $input.type = 'number';
-    $input.placeholder = this.options.userConfig[val].placeholderText;
+    $input.min = 0;
+    $input.max = 59;
     $input.required = true;
     $input.className = val;
     
@@ -113,9 +132,17 @@ _(BusAlertMgr.prototype).extend({
     this.$selectors[args.context].appendChild($button);
   },
 
+  _addDropdown: function(args) {
+    
+  },
+
   _addBox: function(val) {
     $div = document.createElement('div');
     $div.className = val + ' box';
+
+    var $label = document.createElement('p');
+    $label.textContent = this.options.userConfig[val].labelText;
+    $div.appendChild($label);
 
     this.$selectors[val] = $div;
     this.$selectors['notifications'].appendChild($div);
@@ -130,14 +157,7 @@ _(BusAlertMgr.prototype).extend({
       self._addBox(val);
       self._addInput(val);
       if (self.options.userConfig[val].allowMultiple) {
-        self._addButton({
-          text: '+Add another',
-          context: val,
-          className: 'helper'
-        }, function() {
           self._addInput(val);
-          document.querySelector('.' + val + '.box .helper').remove();
-        });
       }
     });
 

@@ -1,5 +1,5 @@
 var express = require('express');
-var harvest = require('./easy-harvest');
+var harvest = require('./harvest');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
@@ -26,7 +26,6 @@ io.on('connection', function(socket) {
   socket.on('news', function(data) {
     console.log(data);
   });
-  socket.emit('news', 'harvesting');
   harvest(socket);
   console.log('listening on ' + (process.env.PORT || 8000));
 
