@@ -20,9 +20,13 @@ module.exports = function(socket) {
 
         request('http://mobile.theride.org/new//models/mdlGetBusLocation.aspx?routeID=' + routeId, function (error, response, body) {
             if (!error && response.statusCode == 200) {
-              console.log(body);
-              var result = JSON.parse(body);
-              socket.emit('busData', result);
+              try {
+                console.log(body);
+                var result = JSON.parse(body);
+                socket.emit('busData', result);
+              } catch(e) {
+                socket.emit('news', 'No information');
+              }
             }
         });
 

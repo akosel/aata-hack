@@ -21,6 +21,7 @@ app.get('/tl', function(req, res) {
 });
 
 io.on('connection', function(socket) {
+  console.log('connection established');
 
   socket.on('news', function(data) {
     console.log(data);

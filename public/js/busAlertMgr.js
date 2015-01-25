@@ -212,21 +212,13 @@ _(BusAlertMgr.prototype).extend({
     var walkTime = Number(this._getItem('walkTime'));
 
     if (minutesLeft < walkTime) {
-        document.querySelector('.go').style.display = 'block';
+      document.querySelector('body').className = 'go';
+    } else if (minutesLeft < walkTime + 2) {
+      document.querySelector('body').className = 'set';
+    } else if (minutesLeft < walkTime + 5) {
+      document.querySelector('body').className = 'ready';
     } else {
-        document.querySelector('.go').style.display = 'none';
-    }
-
-    if (minutesLeft < walkTime + 2) {
-        document.querySelector('.set').style.display = 'block';
-    } else {
-        document.querySelector('.set').style.display = 'none';
-    }
-
-    if (minutesLeft < walkTime + 5) {
-        document.querySelector('.ready').style.display = 'block';
-    } else {
-        document.querySelector('.ready').style.display = 'none';
+      document.querySelector('body').className = '';
     }
 
   },
