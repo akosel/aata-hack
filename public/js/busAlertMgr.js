@@ -38,7 +38,7 @@ window.BusAlertMgr = function(args) {
         }
       }
     },
-    selectorClasses: ['config', 'notifications', 'reset'],
+    selectorClasses: ['config', 'notifications', 'reset', 'news', 'controls'],
     routes: ['1', '1U', '2', '2C', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12A', '12B', '13', '14', '15', '16', '17', '18', '20', '22', '33', '36', '39', '46', '351', '352', '353', '354', '501', '502', '505', '609', '710', '711', '787']
   };
   this.options = _({}).extend(this.defaults, args);
@@ -52,8 +52,13 @@ _(BusAlertMgr.prototype).extend({
   init: function() {
     var self = this;
 
+    _(self.options.selectorClasses).each(function(c) {
+      self.$selectors[c] = document.querySelector('.' + c);
+    });
+
     // listen to the server for changes to the bus data
     this.socket.on('busData', function(json) {
+      this.socket.emit('news', null);
       var toBusGroup = [];
       _(json).each(function(v) {
           if (v.direction === 'To Downtown') {
@@ -74,14 +79,15 @@ _(BusAlertMgr.prototype).extend({
 
     });
 
+    this.socket.on('news', function(news) {
+      var $p = self.$selectors['news'].querySelector('p');
+      $p.textContent = news;
+    });
+
     this.socket.on('abbrToId', function(json) {
       console.log('reset abbrToId', json);
       self.abbrToId = Object.keys(json);
       // TODO sort them, by number, not string
-    });
-
-    _(self.options.selectorClasses).each(function(c) {
-      self.$selectors[c] = document.querySelector('.' + c);
     });
 
     this._pageSetup();
@@ -197,6 +203,7 @@ _(BusAlertMgr.prototype).extend({
     }, function() {
       var self = this;
 
+      var userConfig = {};
       _(userConfigKeys).each(function(key) {
         var value;
         var $formElements = self.options.userConfig[key].$formElements;
@@ -215,8 +222,14 @@ _(BusAlertMgr.prototype).extend({
           value = $formElements[0].value; 
         }
 
+        userConfig[key] = value;
+        
+        // var $span = document.createElement('span');
+        // $span.textContent = value;
+        // self.$selectors['controls'].appendChild($span);
         self._setItem(key, value);
       });
+      this.socket.emit('userConfig', userConfig);
       this.hideConfig();
     });
 

@@ -10,6 +10,7 @@ body {
 
 header {
   z-index: 1;
+  color: black;
   position: fixed;
   top: 0;
   left: 0;
@@ -33,6 +34,7 @@ header {
   border: none;
   cursor: pointer;
   margin-top: 1em;
+  width: 100%;
   border-radius: 8px;
   color: #666; }
 
@@ -70,7 +72,7 @@ footer {
   height: 30px;
   bottom: 0; }
 
-main .info {
+main .info div {
   text-align: right;
   float: right; }
 
@@ -113,13 +115,19 @@ article {
   margin-top: 30px; }
 
 .go {
-  background-color: #27AE60; }
+  background-color: #27AE60;
+  color: white; }
 
 .set {
-  background-color: #FFD127; }
+  background-color: #FFD127;
+  color: white; }
 
 .ready {
-  background-color: #F60; }
+  background-color: #F60;
+  color: white; }
+
+.clearfix {
+  overflow: auto; }
 
 @-webkit-keyframes orbit {
   from {

@@ -24,9 +24,6 @@ app.get('/map', function(req, res) {
 io.on('connection', function(socket) {
   console.log('connection established');
 
-  socket.on('news', function(data) {
-    console.log(data);
-  });
   harvest(socket);
   try {
     var piLight = require('./piLight');
@@ -34,6 +31,8 @@ io.on('connection', function(socket) {
   } catch(e) {
     console.log(e); 
   }
+
+  socket.emit('route', 1);
   console.log('listening on ' + (process.env.PORT || 8000));
 
 });

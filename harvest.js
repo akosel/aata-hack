@@ -60,7 +60,7 @@ module.exports = function(socket) {
                 var result = JSON.parse(body);
                 socket.emit('busData', result);
               } catch(e) {
-                socket.emit('news', 'No information');
+                socket.emit('news', 'It doesn\'t look like there is any information about route ' + route + ' right now. Until more info is available, the countdown timer will assume that the bus is on time.');
               }
             }
         });
@@ -68,6 +68,10 @@ module.exports = function(socket) {
     }, 5000);
 
     intervals.push(id);
+  });
+
+  socket.on('userConfig', function(data) {
+    fs.writeFile('./public/data/userConfig.json', JSON.stringify(data));
   });
 
 };
