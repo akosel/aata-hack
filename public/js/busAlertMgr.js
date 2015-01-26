@@ -58,7 +58,7 @@ _(BusAlertMgr.prototype).extend({
 
     // listen to the server for changes to the bus data
     this.socket.on('busData', function(json) {
-      this.socket.emit('news', null);
+      self.socket.emit('news', null);
       var toBusGroup = [];
       _(json).each(function(v) {
           if (v.direction === 'To Downtown') {

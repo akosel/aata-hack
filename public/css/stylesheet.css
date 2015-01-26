@@ -72,9 +72,8 @@ footer {
   height: 30px;
   bottom: 0; }
 
-main .info div {
-  text-align: right;
-  float: right; }
+main .info {
+  text-align: right; }
 
 article {
   box-sizing: border-box;
