@@ -13,12 +13,12 @@ server.listen(process.env.PORT || 8000);
 
 // only page for application renders are map template
 app.get('/', function(req, res) {
-  res.render('map');
+  res.render('busAlert');
 });
 
 // only page for application renders are map template
-app.get('/tl', function(req, res) {
-  res.render('busAlert');
+app.get('/map', function(req, res) {
+  res.render('map');
 });
 
 io.on('connection', function(socket) {
