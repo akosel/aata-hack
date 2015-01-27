@@ -6,19 +6,19 @@ window.BusAlertMgr = function(args) {
     dashItems: ['adherence', 'direction'],
     userConfig: {
       stopMinutes: {
-        name: 'Stop Minute',
-        labelText: 'Add up to two stop minutes (i.e. if the bus leaves at 8:04am, write 4. If it leaves at 8:48am, write 48.)',
+        name: 'Time (i.e. 8:04)',
+        labelText: 'What time does your bus come? (enter up to two times)',
         allowMultiple: true,
         $formElements: [],
         inputConfig: {
-          type: 'number',
+          type: 'time',
           min: 0,
           max: 59
         }
       }, 
       walkTime: {
         name: 'Walk Time',
-        labelText: 'Set the time it takes you to walk to the bus stop',
+        labelText: 'How long does it take you to walk to the bus stop?',
         allowMultiple: false,
         $formElements: [],
         inputConfig: {
@@ -28,7 +28,7 @@ window.BusAlertMgr = function(args) {
       }, 
       route: {
         name: 'Route',
-        labelText: 'Set the route you care about',
+        labelText: 'What is your route number?',
         allowMultiple: false,
         $formElements: [],
         inputConfig: {
@@ -124,9 +124,8 @@ _(BusAlertMgr.prototype).extend({
   _addInput: function(val) {
     var $input = document.createElement('input');
     $input.placeholder = this.options.userConfig[val].name;
-    $input.type = 'number';
+    $input.type = this.options.userConfig[val].inputConfig.type;
     $input.min = 0;
-    $input.max = 59;
     $input.required = true;
     $input.className = val;
     
@@ -270,7 +269,7 @@ _(BusAlertMgr.prototype).extend({
       var minute = moment().minute();
       var second = moment().second();
       var stopMinutesStr = self._getItem('stopMinutes');
-      var stopMinutes = JSON.parse(stopMinutesStr).map(function(v) { return Number(v); });
+      var stopMinutes = JSON.parse(stopMinutesStr).map(function(v) { var idx = v.indexOf(':') + 1; return Number(v.slice(idx)); });
 
       var timeToNextStop = stopMinutes.map(function(v) { var next = v - minute + lateBy < 0 ? v + 59 - minute + lateBy : v - minute + lateBy - 1; return next; });
 
@@ -284,7 +283,7 @@ _(BusAlertMgr.prototype).extend({
       var minute = moment().minute();
       var second = moment().second();
       var stopMinutesStr = self._getItem('stopMinutes');
-      var stopMinutes = JSON.parse(stopMinutesStr).map(function(v) { return Number(v); });
+      var stopMinutes = JSON.parse(stopMinutesStr).map(function(v) { var idx = v.indexOf(':') + 1; return Number(v.slice(idx)); });
 
       var timeToNextStop = stopMinutes.map(function(v) { var next = v - minute + lateBy < 0 ? v + 59 - minute + lateBy : v - minute + lateBy - 1; return next; });
       var minutesLeft = _(timeToNextStop).min();
