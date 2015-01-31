@@ -5,5 +5,3 @@ Use nodejs and Raspberry Pi to create a bus alert system. This combines a websit
 
 ## Live Demo
 http://aata-map.herokuapp.com/tl
-
-
