@@ -1,7 +1,7 @@
 aata-hack
 =========
 
-Use nodejs and Raspberry Pi to create a bus alert system. This combines a website for a configuration and a light interface. There is also a map, but that is currently under construction.
+Use nodejs and Raspberry Pi to create a bus alert system. This combines a website for a configuration and a light interface. There is also a map, but that is currently under construction. You can just use the web app too (see the live demo below for that), but I liked being able to have a nice light available in my apartment.
 
 ## Deploy on a Raspberry Pi
 To deploy on a Raspberry Pi, you will need a few things. Namely, three LED lights, ideally different colors, appropriate resistors to avoid burning out said LEDs, and the wiring for connecting everything. Additionally, your Raspberry Pi will need a network connection to get up-to-date bus info. The pins used by this program are set to 11 for 'Go', 13 for 'Set', and 15 for 'Ready'. Ready, Set, Go. Like in racing.
