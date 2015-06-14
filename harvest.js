@@ -8,7 +8,7 @@ module.exports = function(socket) {
   var intervals   = [],
       abbrToId    = {},
       routeList   = [],
-      abbrToIdUrl = 'http://mobile.theride.org/new/models/GetRouteNames.aspx';
+      abbrToIdUrl = 'http://mobile.theride.org/models/GetRouteNames.aspx';
 
   // callback hell. this is not pretty.
   request(abbrToIdUrl, function(error, response, body) {
@@ -53,7 +53,7 @@ module.exports = function(socket) {
         routeId = abbrToId[route];
         console.log(routeId);
 
-        request('http://mobile.theride.org/new//models/GetBusLocation.aspx?routeID=' + routeId, function (error, response, body) {
+        request('http://mobile.theride.org/models/GetBusLocation.aspx?routeID=' + routeId, function (error, response, body) {
             if (!error && response.statusCode == 200) {
               try {
                 console.log(body);

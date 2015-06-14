@@ -29,7 +29,7 @@ io.on('connection', function(socket) {
     var piLight = require('./piLight');
     piLight(socket);
   } catch(e) {
-    console.log(e); 
+    console.log(e);
   }
 
   socket.emit('route', 1);
